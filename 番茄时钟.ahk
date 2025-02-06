@@ -1,7 +1,6 @@
 #Requires AutoHotkey v2.0 
 #include <Direct2DRender>
 #include <fmod>
-#include <log>
 CoordMode "Mouse", "Screen"
 
 g_font_size := 30
