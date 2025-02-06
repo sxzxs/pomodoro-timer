@@ -1,6 +1,8 @@
 #Requires AutoHotkey v2.0 
 #include <Direct2DRender>
 #include <fmod>
+#include <log>
+CoordMode "Mouse", "Screen"
 
 g_font_size := 30
 g_opacity := 0xBB
@@ -78,6 +80,22 @@ class SoundObj
 }
 
 #HotIf is_hover()
+
+^LButton::
+{
+    Clock.overlay.GetMousePos(&mx, &my)
+    while(GetKeyState("LButton", "P"))
+    {
+        MouseGetPos(&sx, &sy)
+        sx := sx - mx
+        sy := sy - my
+        g_all_clock[1].x := sx
+        g_all_clock[1].y := sy
+        g_all_clock[1].draw()
+        Sleep(40)
+    }
+}
+
 ^RButton::
 {
     A_TrayMenu.Show()
@@ -114,6 +132,7 @@ class Clock
     __New(monitor_info) 
     {
         this.overlay := Direct2DRender(0, 0, 50, 50)
+        Clock.overlay := this.overlay
         this.monitor_info := monitor_info
         this.x := monitor_info.Left
         this.y := monitor_info.Top
@@ -128,9 +147,9 @@ class Clock
         ;创建托盘菜单
 		this.tray_menue := A_TrayMenu
 		this.tray_menue.Delete()
-        this.tray_menue.Add("设置时间`t(&S)", (*) => (this.get_set_time(), this.start_flag := false, this.redraw(), this.stop_play_music()))
+        this.tray_menue.Add("设置时间`t(&S)", (*) => (this.get_set_time(), this.start_flag := false, this.stop_play_music()))
         this.tray_menue.Add("开始计时`t(&T)", (*) => (this.start_flag := true, this.start_time := A_TickCount, this.stop_play_music()))
-        this.tray_menue.Add("重置计时`t(&L)", (*) => (this.start_flag := false, this.redraw(), this.stop_play_music()))
+        this.tray_menue.Add("重置计时`t(&L)", (*) => (this.start_flag := false,  this.stop_play_music()))
         this.tray_menue.Add("停止播放`t(&P)", (*) => (this.stop_play_music()))
         this.tray_menue.Add()
         this.tray_menue.Add("重启`t(&R)", (*) => Reload())
@@ -154,33 +173,20 @@ class Clock
         }
     }
 
-    redraw()
-    {
-        uijm := FormatSeconds(this.all_time)
-        wh := this.overlay.GetTextWidthHeight(uijm, g_font_size, 'Courier')
-        w := wh.width, h := wh.height
-        this.overlay.SetPosition(this.x, this.y, w, h)
-        if (this.overlay.BeginDraw()) 
-        {
-            this.overlay.FillRoundedRectangle(0, 0, w, h, 5, 5, g_opacity << 24)
-            this.overlay.DrawText(uijm, 0, 0, g_font_size, 0xccFF0000, "Courier")
-            this.overlay.EndDraw()
-        }
-    }
-
     draw()
     {
-        if(!this.start_flag)
-            return
-        
+        Critical
         ;剩余时间
-        last_time := this.all_time - Ceil((A_TickCount - this.start_time) / 1000)
+        if(!this.start_flag)
+            last_time := this.all_time
+        else
+            last_time := this.all_time - Ceil((A_TickCount - this.start_time) / 1000)
 
         if(last_time < 0)
         {
+            if(this.start_flag)
+                play_sound("菜鸟图库-菊次郎的夏天.mp3")
             this.start_flag := false
-            play_sound("菜鸟图库-菊次郎的夏天.mp3")
-            return
         }
 
         uijm := FormatSeconds(last_time)
@@ -189,11 +195,8 @@ class Clock
         this.overlay.SetPosition(this.x, this.y, w, h)
         if (this.overlay.BeginDraw()) 
         {
-            if(this.start_flag)
-            {
-                this.overlay.FillRoundedRectangle(0, 0, w, h, 5, 5, g_opacity << 24)
-                this.overlay.DrawText(uijm, 0, 0, g_font_size, 0xccFF0000, "Courier")
-            }
+            this.overlay.FillRoundedRectangle(0, 0, w, h, 5, 5, g_opacity << 24)
+            this.overlay.DrawText(uijm, 0, 0, g_font_size, 0xccFF0000, "Courier")
             this.overlay.EndDraw()
         }
     }
