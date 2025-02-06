@@ -1,6 +1,7 @@
 #Requires AutoHotkey v2.0 
 #include <Direct2DRender>
 #include <fmod>
+#include <NTLCalc>
 CoordMode "Mouse", "Screen"
 
 g_font_size := 30
@@ -167,9 +168,7 @@ class Clock
     {
         IB := InputBox("请输入时间(秒):", "time", "w640 h200")
         if IB.Result != "Cancel"
-        {
-            this.all_time := IB.Value
-        }
+            this.all_time := NTLCalc(IB.Value)
     }
 
     draw()
