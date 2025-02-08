@@ -141,6 +141,7 @@ class Clock
         this.start_time := A_TickCount
         this.start_flag := false
         this.all_time := 900 ; 15min
+        this.object_text := ""
         ;设置定时器
         SetTimer(ObjBindMethod(this, 'draw'), 40)
 
@@ -148,6 +149,7 @@ class Clock
 		this.tray_menue := A_TrayMenu
 		this.tray_menue.Delete()
         this.tray_menue.Add("设置时间`t(&S)", (*) => (this.get_set_time(), this.start_flag := false, this.stop_play_music()))
+        this.tray_menue.Add("设置目标`t(&A)", (*) => (this.get_object_text()))
         this.tray_menue.Add("开始计时`t(&T)", (*) => (this.start_flag := true, this.start_time := A_TickCount, this.stop_play_music()))
         this.tray_menue.Add("重置计时`t(&L)", (*) => (this.start_flag := false,  this.stop_play_music()))
         this.tray_menue.Add("停止播放`t(&P)", (*) => (this.stop_play_music()))
@@ -159,7 +161,7 @@ class Clock
 
     stop_play_music()
     {
-        play_sound("菜鸟图库-菊次郎的夏天.mp3", true)
+        play_sound("菜鸟图库-央视新闻联播.mp3", true)
     }
 
     is_hover() => this.overlay.GetMousePos(&mx, &my)
@@ -169,6 +171,13 @@ class Clock
         IB := InputBox("请输入时间(秒):", "time", "w640 h200")
         if IB.Result != "Cancel"
             this.all_time := NTLCalc(IB.Value)
+    }
+
+    get_object_text()
+    {
+        IB := InputBox("请输入时间(秒):", "time", "w640 h200")
+        if IB.Result != "Cancel"
+            this.object_text := IB.Value
     }
 
     draw()
@@ -183,11 +192,12 @@ class Clock
         if(last_time < 0)
         {
             if(this.start_flag)
-                play_sound("菜鸟图库-菊次郎的夏天.mp3")
+                play_sound("菜鸟图库-央视新闻联播.mp3")
             this.start_flag := false
         }
 
         uijm := FormatSeconds(last_time)
+        uijm .= ' ' this.object_text
         wh := this.overlay.GetTextWidthHeight(uijm, g_font_size, 'Courier')
         w := wh.width, h := wh.height
         this.overlay.SetPosition(this.x, this.y, w, h)
